@@ -1,0 +1,61 @@
+CS631 Midterm - ls(1)
+=====================
+
+Overview
+--------
+This is an implementation of the ls(1) utility as described in the manual
+page provided with the assignment, supporting the options
+-AacdFfhiklnqRrSstuw.
+
+Files
+-----
+ls.c     main(), option parsing, operand handling, directory traversal (-R)
+cmp.c    comparison functions used for sorting (-S, -t, -r, -c, -u)
+print.c  formatting and printing (-l, -n, -h, -k, -s, -i, -F, -q, -w)
+ls.h     shared declarations (struct options, struct entry)
+Makefile builds the program with -Wall -Wextra -Werror
+
+Build and run
+-------------
+	$ make
+	$ ./ls [-AacdFfhiklnqRrSstuw] [file ...]
+
+Design notes
+------------
+* Operands are lstat(2)'ed.  A symbolic link operand that points to a
+  directory is followed unless -d is given.  Non-directory operands are
+  printed first, then directories; both groups are sorted separately.
+* Within a directory, entries are read with readdir(3), lstat(2)'ed,
+  sorted with qsort(3) (name, -S size, -t time; -r reverses), unless -f.
+* When two flags conflict (-c/-u, -S/-t, -h/-k, -q/-w, -l/-n) the last one
+  given wins.  -A is always set for the super-user.
+* "total N" is printed for -l/-n in every directory and for -s when stdout
+  is a terminal.  Block counts use 512 byte units, BLOCKSIZE, -k or -h.
+* -l prints "Mon dd HH:MM" for recent files and "Mon dd  YYYY" for files
+  older than six months or in the future (like the system ls).
+* Non-printable characters are shown as '?' with -q (default on a
+  terminal) and printed raw with -w (default otherwise).
+* Memory is allocated dynamically and freed; no fixed size limits are used
+  for directory contents.
+
+How I tested
+------------
+I built a scratch directory containing regular files, an executable, a
+hidden file, a fifo, symbolic links (to a file and to a directory), an
+empty directory, nested sub-directories, a file with a non-printable
+character in its name and a file with an old timestamp.  I then compared
+the output of ./ls with the system ls for each option and for common
+combinations (-l, -ln, -F, -i, -s, -ls, -lsi, -lS, -lt, -ltr, -lr, -R,
+-lR, -lu, -lc, -a, -A, -d, -tS, -lSr), normalizing whitespace where the
+system ls formats columns differently.  I also tested:
+  * multiple operands (files first, then directories with "dir:" headers)
+  * non-existent operands (error message on stderr, exit status 1)
+  * invalid options (usage message, exit status 2)
+  * unreadable directories (error message, exit status 1)
+  * -h, -k, -s and the BLOCKSIZE environment variable
+  * -q versus -w and conflicting flags (-qw, -wq)
+  * device files (major/minor numbers in the size column)
+  * running as root to confirm that -A is implied
+Known, intentional differences from GNU ls: two blanks between columns,
+-f does not imply -a, and ties in -t are broken by name (as the manual page
+requires) rather than by sub-second timestamps.

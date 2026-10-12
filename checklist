@@ -1,0 +1,14 @@
+CS631 Midterm checklist
+=======================
+[x] Program is in the "midterm" directory of my git repository
+[x] Multiple .c files with proper header file (ls.c, cmp.c, print.c, ls.h)
+[x] Makefile provided; "make" builds without warnings (-Wall -Wextra -Werror)
+[x] README describes the program and how it was tested
+[x] checklist included
+[x] git log included (git log > LOG)
+[x] All options -AacdFfhiklnqRrSstuw implemented
+[x] Return values of system calls are checked and errors reported
+[x] No fixed-size buffers for unbounded input; dynamic memory is freed
+[x] Only the provided manual page was used as reference
+[x] Submission is a single tar archive named ${USER}-midterm.tar that
+    extracts into a directory named after the username
